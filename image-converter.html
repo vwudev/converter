@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Converter | ConvertHub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Style riêng cho trang image-converter */
+    .format-menu {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .format-btn {
+      padding: 0.8rem 1.5rem;
+      background-color: var(--light-color);
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-weight: bold;
+      transition: var(--transition);
+    }
+    
+    .format-btn:hover {
+      background-color: var(--accent-color);
+      color: white;
+    }
+    
+    .format-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    #imagePreview {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      display: none;
+    }
+    
+    #imageInput, #imageFormat {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+    }
+    
+    .option-group {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo">
+        <i class="fas fa-exchange-alt"></i>
+        <span>ConvertVwu</span>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Trang chủ</a></li>
+        <li class="nav-item"><a href="video-to-gif.html" class="nav-link">Video to GIF</a></li>
+        <li class="nav-item"><a href="image-converter.html" class="nav-link active">Chuyển đổi ảnh</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="converter-container">
+    <h1 class="converter-title"><i class="fas fa-images"></i> Image Format Converter</h1>
+    
+    <div class="format-menu">
+      <button class="format-btn active" onclick="showFormatOptions('png')">PNG Converter</button>
+      <button class="format-btn" onclick="showFormatOptions('jpg')">JPG Converter</button>
+      <button class="format-btn" onclick="showFormatOptions('webp')">WEBP Converter</button>
+    </div>
+    
+    <div class="tab">
+      <h2>Chuyển đổi định dạng ảnh</h2>
+      <p>Hỗ trợ: JPG, PNG, WEBP...</p>
+      
+      <label for="imageInput">Chọn file ảnh:</label>
+      <input type="file" id="imageInput" accept="image/*" />
+      
+      <img id="imagePreview" />
+      
+      <div class="option-group">
+        <div>
+          <label for="imageFormat">Định dạng đích:</label>
+          <select id="imageFormat">
+            <!-- Options sẽ được thêm động -->
+          </select>
+        </div>
+      </div>
+      
+      <button id="convertImageBtn" class="btn">Chuyển đổi ảnh</button>
+      
+      <div class="status" id="imageStatus">Chọn ảnh để bắt đầu</div>
+      
+      <canvas id="imageCanvas" style="display:none;"></canvas>
+      <a id="imgDownload" class="download-btn">⬇️ Tải ảnh đã chuyển đổi</a>
+    </div>
+  </main>
+<footer>
+  <div class="footer-container">
+    <div class="footer-info">
+      <h3>ConvertVwu</h3>
+      <p><i class="fas fa-map-marker-alt"></i> Xuân Lộc, Đồng Nai, Việt Nam</p>
+      <p><i class="fas fa-phone"></i> <a href="tel:0878083973">0878 083 973</a></p>
+      <p><i class="fas fa-envelope"></i> <a href="mailto:convert@hub.com">convert@hub.com</a></p>
+    </div>
+
+
+    <div class="footer-socials">
+      <a href="#"><i class="fab fa-facebook-f"></i></a>
+      <a href="#"><i class="fab fa-instagram"></i></a>
+      <a href="#"><i class="fab fa-github"></i></a>
+      <a href="#"><i class="fab fa-youtube"></i></a>
+    </div>
+  </div>
+  <p class="footer-bottom">© 2023 ConvertVwu. All rights reserved.</p>
+</footer>
+
+
+
+  <script src="converter.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      initImageConverter();
+      showFormatOptions('png');
+    });
+    
+    function showFormatOptions(format) {
+      document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      const formatSelect = document.getElementById('imageFormat');
+      formatSelect.innerHTML = '';
+      
+      if (format === 'png') {
+        formatSelect.appendChild(new Option('JPG', 'image/jpeg'));
+        formatSelect.appendChild(new Option('WEBP', 'image/webp'));
+      } else if (format === 'jpg') {
+        formatSelect.appendChild(new Option('PNG', 'image/png'));
+        formatSelect.appendChild(new Option('WEBP', 'image/webp'));
+      } else if (format === 'webp') {
+        formatSelect.appendChild(new Option('PNG', 'image/png'));
+        formatSelect.appendChild(new Option('JPG', 'image/jpeg'));
+      }
+    }
+  </script>
+</body>
+</html>
