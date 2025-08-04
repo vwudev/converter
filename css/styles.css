@@ -60,6 +60,12 @@ header {
   position: relative;
 }
 
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -68,6 +74,19 @@ header {
   font-weight: 600;
   color: white;
   text-decoration: none;
+}
+
+.logo img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.slogan {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-style: italic;
+  max-width: 200px;
 }
 
 .menu-toggle {
@@ -173,9 +192,10 @@ header {
 
 /* ============ BUTTONS ============ */
 .btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border-radius: var(--border-radius);
@@ -267,6 +287,25 @@ footer {
 .footer-info h3 {
   color: var(--success-color);
   margin-bottom: 1.5rem;
+  font-size: 1.3rem; /* Thêm lại font-size cho h3 trong footer */
+}
+
+.footer-info p {
+  margin: 0.8rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.footer-info a {
+  color: white;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.footer-info a:hover {
+  color: var(--accent-color);
 }
 
 .footer-links {
@@ -277,11 +316,24 @@ footer {
   gap: 0.8rem;
 }
 
+.footer-links a {
+  color: white;
+  text-decoration: none;
+  transition: var(--transition);
+  font-size: 0.95rem;
+}
+
+.footer-links a:hover {
+  color: var(--accent-color);
+  padding-left: 5px; /* Hiệu ứng hover cho link */
+}
+
 .footer-socials {
   flex: 1;
   min-width: 200px;
   display: flex;
   gap: 1.5rem;
+  align-items: flex-start;
 }
 
 .footer-socials a {
@@ -300,6 +352,8 @@ footer {
   margin-top: 3rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 /* ============ UTILITY CLASSES ============ */
@@ -348,6 +402,10 @@ footer {
   .footer-links,
   .footer-socials {
     align-items: center;
+  }
+  
+  .footer-info p {
+    justify-content: center; /* Căn giữa các dòng thông tin */
   }
 }
 
