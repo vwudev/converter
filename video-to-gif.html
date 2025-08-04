@@ -54,7 +54,11 @@
       <input type="file" id="videoInput" accept="video/*" />
       
       <video id="videoPreview" controls></video>
-      
+   
+      <div id="videoInfo" style="margin: 10px 0; display: none;">
+        <p>Thời lượng: <span id="videoDuration">0</span> giây</p>
+        <p class="warning"><i class="fas fa-exclamation-triangle"></i> Chỉ 10 giây đầu sẽ được chuyển đổi sang GIF</p>
+      </div>
       <button id="convertVideoBtn" class="btn">Chuyển đổi sang GIF</button>
       
       <div class="status" id="videoStatus">Chọn video để bắt đầu</div>
