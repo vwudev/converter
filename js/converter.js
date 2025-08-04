@@ -1,7 +1,18 @@
 // Video to GIF functions
-// Video to GIF functions
-function initVideoConverter() {
-    const ffmpeg = createFFmpeg({ log: true });
+async function initVideoConverter() {
+    // Kiểm tra xem FFmpeg có sẵn sàng không
+    if (typeof createFFmpeg === 'undefined' || typeof fetchFile === 'undefined') {
+        console.error('FFmpeg libraries not loaded!');
+        document.getElementById('videoStatus').textContent = 'Lỗi: Thư viện FFmpeg chưa được tải. Vui lòng tải lại trang.';
+        return;
+    }
+
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ffmpeg = createFFmpeg({ 
+        log: true,
+        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+    });
+    
     let ffmpegLoaded = false;
     let conversionStartTime;
 
@@ -10,24 +21,33 @@ function initVideoConverter() {
     const videoStatus = document.getElementById('videoStatus');
     const gifDownload = document.getElementById('gifDownload');
     const videoPreview = document.getElementById('videoPreview');
-    const progressBar = document.getElementById('progressBar'); // Lấy phần tử thanh tiến độ
+    const progressBar = document.getElementById('progressBar');
     let selectedVideo = null;
 
-    async function initFFmpeg() {
+    async function loadFFmpeg() {
         if (!ffmpegLoaded) {
             videoStatus.textContent = 'Đang tải FFmpeg... (lần đầu có thể mất vài giây)';
-            await ffmpeg.load();
-            ffmpegLoaded = true;
-            videoStatus.textContent = 'FFmpeg đã sẵn sàng!';
+            try {
+                await ffmpeg.load();
+                ffmpegLoaded = true;
+                videoStatus.textContent = 'FFmpeg đã sẵn sàng! Chọn video để bắt đầu.';
+                console.log('FFmpeg loaded successfully');
+            } catch (error) {
+                console.error('Lỗi khi tải FFmpeg:', error);
+                videoStatus.textContent = 'Lỗi khi tải FFmpeg: ' + error.message;
+            }
         }
     }
+
+    // Tải FFmpeg ngay khi trang được mở
+    loadFFmpeg();
 
     videoInput.addEventListener('change', (e) => {
         if (e.target.files.length === 0) return;
         
         selectedVideo = e.target.files[0];
         if (!selectedVideo.type.match('video.*')) {
-            alert('Vui lòng chọn file video!');
+            alert('Vui lòng chọn file video hợp lệ (MP4, MOV, AVI...)');
             return;
         }
         
@@ -35,8 +55,9 @@ function initVideoConverter() {
         videoPreview.src = videoURL;
         videoPreview.style.display = 'block';
         
-        videoStatus.textContent = `Video đã chọn: ${selectedVideo.name}`;
+        videoStatus.textContent = `Video đã chọn: ${selectedVideo.name} (${(selectedVideo.size / 1024 / 1024).toFixed(2)}MB)`;
         gifDownload.style.display = 'none';
+        progressBar.style.display = 'none';
         
         videoPreview.addEventListener('loadedmetadata', () => {
             URL.revokeObjectURL(videoURL);
@@ -45,63 +66,78 @@ function initVideoConverter() {
 
     videoBtn.addEventListener('click', async () => {
         if (!selectedVideo) {
-            alert('Vui lòng chọn video trước!');
+            alert('Vui lòng chọn video trước khi chuyển đổi!');
             return;
         }
         
+        if (!ffmpegLoaded) {
+            alert('FFmpeg chưa sẵn sàng, vui lòng chờ...');
+            return;
+        }
+
         try {
             videoBtn.disabled = true;
             gifDownload.style.display = 'none';
-            progressBar.style.display = 'block'; // Hiển thị thanh tiến độ
+            progressBar.style.display = 'block';
+            progressBar.value = 0;
             conversionStartTime = Date.now();
             
-            videoStatus.textContent = 'Đang xử lý, vui lòng chờ...';
-            await initFFmpeg();
-
+            videoStatus.textContent = 'Đang bắt đầu quá trình chuyển đổi...';
+            
             ffmpeg.setProgress(({ ratio }) => {
+                const progress = Math.round(ratio * 100);
                 const elapsed = (Date.now() - conversionStartTime) / 1000;
                 let eta = 'Đang tính...';
+                
                 if (ratio > 0.1 && ratio < 1) {
                     const totalTime = elapsed / ratio;
                     const remainingTime = totalTime - elapsed;
-                    eta = `${remainingTime.toFixed(1)}s còn lại`;
+                    eta = `${Math.floor(remainingTime / 60)}m ${Math.floor(remainingTime % 60)}s còn lại`;
                 }
-                const progress = Math.round(ratio * 100);
-                videoStatus.textContent = `Đang chuyển đổi: ${progress}% - ETA: ${eta}`;
-                progressBar.value = progress; // Cập nhật giá trị thanh tiến độ
+                
+                videoStatus.textContent = `Đang chuyển đổi: ${progress}% - ${eta}`;
+                progressBar.value = progress;
             });
-            
-            ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(selectedVideo));
-            
+
+            // Ghi file video vào bộ nhớ FFmpeg
+            videoStatus.textContent = 'Đang đọc video...';
+            await ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(selectedVideo));
+
+            // Chạy lệnh FFmpeg để chuyển đổi
+            videoStatus.textContent = 'Đang chuyển đổi video sang GIF...';
             await ffmpeg.run(
                 '-i', 'input.mp4',
-                '-t', '5',
-                '-vf', 'fps=10,scale=640:-1:flags=lanczos',
-                '-f', 'gif',
+                '-t', '10', // Giới hạn 10 giây
+                '-vf', 'fps=15,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
+                '-loop', '0',
                 'output.gif'
             );
-            
+
+            // Đọc kết quả
+            videoStatus.textContent = 'Đang tạo file GIF...';
             const data = ffmpeg.FS('readFile', 'output.gif');
+            
+            // Tạo URL để tải về
             const blob = new Blob([data.buffer], { type: 'image/gif' });
             const url = URL.createObjectURL(blob);
 
             gifDownload.href = url;
             gifDownload.download = selectedVideo.name.replace(/\.[^/.]+$/, '') + '.gif';
             gifDownload.style.display = 'inline-block';
-            videoStatus.textContent = '✅ Chuyển đổi thành công!';
-            progressBar.style.display = 'none'; // Ẩn thanh tiến độ khi hoàn thành
-
+            progressBar.value = 100;
+            videoStatus.textContent = '✅ Chuyển đổi thành công! Nhấn vào nút tải để lấy GIF.';
+            
         } catch (error) {
             console.error('Lỗi khi chuyển đổi:', error);
-            videoStatus.textContent = '❌ Lỗi khi chuyển đổi: ' + error.message;
-            progressBar.style.display = 'none'; // Ẩn thanh tiến độ khi có lỗi
+            videoStatus.textContent = '❌ Lỗi khi chuyển đổi: ' + (error.message || 'Xảy ra lỗi không xác định');
+            progressBar.style.display = 'none';
         } finally {
             videoBtn.disabled = false;
         }
     });
 }
 
-// Image Converter functions (đã được giữ nguyên)
+// Image Converter functions 
 function initImageConverter() {
     const imageInput = document.getElementById('imageInput');
     const imageBtn = document.getElementById('convertImageBtn');
