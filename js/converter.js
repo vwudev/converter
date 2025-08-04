@@ -1,14 +1,97 @@
 // Video to GIF functions
 function initVideoConverter() {
-  const ffmpeg = createFFmpeg({ log: true });
-  let ffmpegLoaded = false;
+    const ffmpeg = createFFmpeg({ log: true });
+    let ffmpegLoaded = false;
 
-  const videoInput = document.getElementById('videoInput');
-  const videoBtn = document.getElementById('convertVideoBtn');
-  const videoStatus = document.getElementById('videoStatus');
-  const gifDownload = document.getElementById('gifDownload');
-  const videoPreview = document.getElementById('videoPreview');
-  let selectedVideo = null;
+    const videoInput = document.getElementById('videoInput');
+    const videoBtn = document.getElementById('convertVideoBtn');
+    const videoStatus = document.getElementById('videoStatus');
+    const gifDownload = document.getElementById('gifDownload');
+    const videoPreview = document.getElementById('videoPreview');
+    let selectedVideo = null;
+
+    async function initFFmpeg() {
+        try {
+            if (!ffmpegLoaded) {
+                videoStatus.textContent = 'Đang tải FFmpeg...';
+                await ffmpeg.load();
+                ffmpegLoaded = true;
+                videoStatus.textContent = 'FFmpeg đã sẵn sàng!';
+            }
+        } catch (error) {
+            console.error('Lỗi khi tải FFmpeg:', error);
+            videoStatus.textContent = 'Lỗi khi tải FFmpeg!';
+        }
+    }
+
+    videoInput.addEventListener('change', (e) => {
+        if (e.target.files.length === 0) return;
+        
+        selectedVideo = e.target.files[0];
+        if (!selectedVideo.type.match('video.*')) {
+            alert('Vui lòng chọn file video!');
+            return;
+        }
+        
+        const videoURL = URL.createObjectURL(selectedVideo);
+        videoPreview.src = videoURL;
+        videoPreview.style.display = 'block'; // Hiển thị video preview
+        
+        videoStatus.textContent = 'Video đã chọn: ' + selectedVideo.name;
+        gifDownload.style.display = 'none';
+        
+        // Thêm sự kiện để giải phóng URL khi video không còn được sử dụng
+        videoPreview.addEventListener('loadedmetadata', () => {
+          URL.revokeObjectURL(videoURL);
+        }, { once: true });
+    });
+
+    videoBtn.addEventListener('click', async () => {
+        if (!selectedVideo) {
+            alert('Vui lòng chọn video trước!');
+            return;
+        }
+        
+        try {
+            videoBtn.disabled = true;
+            gifDownload.style.display = 'none';
+            
+            videoStatus.textContent = 'Đang xử lý, vui lòng chờ...';
+            await initFFmpeg();
+
+            // Lắng nghe sự kiện tiến trình của FFmpeg
+            ffmpeg.setProgress(({ ratio }) => {
+                if (ratio < 1) {
+                    const progress = Math.round(ratio * 100);
+                    videoStatus.textContent = `Đang chuyển đổi: ${progress}%`;
+                }
+            });
+            
+            ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(selectedVideo));
+            await ffmpeg.run(
+                '-i', 'input.mp4',
+                '-t', '5',
+                '-vf', 'fps=10,scale=640:-1:flags=lanczos',
+                '-f', 'gif',
+                'output.gif'
+            );
+            
+            const data = ffmpeg.FS('readFile', 'output.gif');
+            const blob = new Blob([data.buffer], { type: 'image/gif' });
+            const url = URL.createObjectURL(blob);
+
+            gifDownload.href = url;
+            gifDownload.download = selectedVideo.name.replace(/\.[^/.]+$/, '') + '.gif';
+            gifDownload.style.display = 'inline-block';
+            videoStatus.textContent = '✅ Chuyển đổi thành công!';
+        } catch (error) {
+            console.error('Lỗi khi chuyển đổi:', error);
+            videoStatus.textContent = '❌ Lỗi khi chuyển đổi: ' + error.message;
+        } finally {
+            videoBtn.disabled = false;
+        }
+    });
+}
 
   async function initFFmpeg() {
     try {
