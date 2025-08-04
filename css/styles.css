@@ -1,4 +1,4 @@
-/* ============ Base Styles ============ */
+/* ============ CORE STYLES ============ */
 :root {
   --primary-color: #4361ee;
   --secondary-color: #3f37c9;
@@ -29,7 +29,7 @@ body {
   flex-direction: column;
 }
 
-/* ============ Layout ============ */
+/* ============ LAYOUT STRUCTURE ============ */
 .container {
   width: 100%;
   max-width: 1200px;
@@ -42,18 +42,22 @@ body {
   padding: 2rem 0;
 }
 
-/* ============ Navigation ============ */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
+/* ============ HEADER & NAVIGATION ============ */
+header {
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: white;
   position: sticky;
   top: 0;
   z-index: 1000;
   box-shadow: var(--box-shadow);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  position: relative;
 }
 
 .logo {
@@ -74,12 +78,14 @@ body {
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.5rem;
+  z-index: 1001;
 }
 
 .nav-menu {
   display: flex;
   list-style: none;
   gap: 1rem;
+  transition: var(--transition);
 }
 
 .nav-item {
@@ -100,14 +106,20 @@ body {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* ============ Converter UI ============ */
-.converter-box {
+/* ============ VIDEO CONVERTER UI ============ */
+.converter-container {
   background: white;
   padding: 2rem;
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   max-width: 800px;
   margin: 0 auto;
+}
+
+.converter-title {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .form-group {
@@ -159,26 +171,7 @@ body {
   border-radius: var(--border-radius);
 }
 
-.progress-bar {
-  width: 100%;
-  height: 10px;
-  border-radius: 5px;
-  margin: 1rem 0;
-  display: none;
-}
-
-.progress-bar::-webkit-progress-bar {
-  background-color: #f0f0f0;
-  border-radius: 5px;
-}
-
-.progress-bar::-webkit-progress-value {
-  background-color: var(--primary-color);
-  border-radius: 5px;
-  transition: width 0.3s;
-}
-
-/* ============ Buttons ============ */
+/* ============ BUTTONS ============ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -205,6 +198,15 @@ body {
   box-shadow: var(--box-shadow);
 }
 
+.btn-secondary {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-color);
+}
+
 .btn-download {
   background-color: var(--success-color);
   color: white;
@@ -216,11 +218,103 @@ body {
   background-color: #3ab7e0;
 }
 
-/* ============ Responsive ============ */
+.btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============ PROGRESS BAR ============ */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  margin: 1rem 0;
+  display: none;
+}
+
+.progress-bar::-webkit-progress-bar {
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.progress-bar::-webkit-progress-value {
+  background-color: var(--primary-color);
+  border-radius: 5px;
+  transition: width 0.3s;
+}
+
+/* ============ FOOTER ============ */
+footer {
+  background-color: var(--dark-color);
+  color: white;
+  padding: 3rem 0 1.5rem;
+  margin-top: auto;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.footer-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.footer-info h3 {
+  color: var(--success-color);
+  margin-bottom: 1.5rem;
+}
+
+.footer-links {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.footer-socials {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-socials a {
+  color: white;
+  font-size: 1.3rem;
+  transition: var(--transition);
+}
+
+.footer-socials a:hover {
+  color: var(--accent-color);
+  transform: scale(1.2);
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============ UTILITY CLASSES ============ */
+.text-center { text-align: center; }
+.hidden { display: none !important; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+/* ============ RESPONSIVE STYLES ============ */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
-    z-index: 1001;
   }
   
   .nav-menu {
@@ -234,7 +328,6 @@ body {
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    transition: var(--transition);
     z-index: 1000;
   }
   
@@ -242,8 +335,19 @@ body {
     right: 0;
   }
   
-  .converter-box {
+  .converter-container {
     padding: 1.5rem;
+  }
+  
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .footer-links,
+  .footer-socials {
+    align-items: center;
   }
 }
 
@@ -254,5 +358,9 @@ body {
   
   .logo {
     font-size: 1.1rem;
+  }
+  
+  .converter-container {
+    padding: 1rem;
   }
 }
