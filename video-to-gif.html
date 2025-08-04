@@ -26,6 +26,28 @@
       border: 1px solid #ddd;
       border-radius: var(--border-radius);
     }
+    
+    .warning {
+      color: #e67e22;
+      font-weight: bold;
+      background-color: #fdf2e9;
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+    
+    .warning i {
+      margin-right: 5px;
+    }
+    
+    #videoInfo {
+      margin: 10px 0;
+      display: none;
+    }
+    
+    #videoInfo p {
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
@@ -54,11 +76,12 @@
       <input type="file" id="videoInput" accept="video/*" />
       
       <video id="videoPreview" controls></video>
-   
-      <div id="videoInfo" style="margin: 10px 0; display: none;">
+      
+      <div id="videoInfo">
         <p>Thời lượng: <span id="videoDuration">0</span> giây</p>
         <p class="warning"><i class="fas fa-exclamation-triangle"></i> Chỉ 10 giây đầu sẽ được chuyển đổi sang GIF</p>
       </div>
+      
       <button id="convertVideoBtn" class="btn">Chuyển đổi sang GIF</button>
       
       <div class="status" id="videoStatus">Chọn video để bắt đầu</div>
@@ -68,26 +91,24 @@
     </div>
   </main>
 
-<footer>
-  <div class="footer-container">
-    <div class="footer-info">
-      <h3>ConvertVwu</h3>
-      <p><i class="fas fa-map-marker-alt"></i> Xuân Lộc, Đồng Nai, Việt Nam</p>
-      <p><i class="fas fa-phone"></i> <a href="tel:0878083973">0878 083 973</a></p>
-      <p><i class="fas fa-envelope"></i> <a href="mailto:convert@hub.com">convert@hub.com</a></p>
+  <footer>
+    <div class="footer-container">
+      <div class="footer-info">
+        <h3>ConvertVwu</h3>
+        <p><i class="fas fa-map-marker-alt"></i> Xuân Lộc, Đồng Nai, Việt Nam</p>
+        <p><i class="fas fa-phone"></i> <a href="tel:0878083973">0878 083 973</a></p>
+        <p><i class="fas fa-envelope"></i> <a href="mailto:convert@hub.com">convert@hub.com</a></p>
+      </div>
+
+      <div class="footer-socials">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-github"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
     </div>
-
-
-    <div class="footer-socials">
-      <a href="#"><i class="fab fa-facebook-f"></i></a>
-      <a href="#"><i class="fab fa-instagram"></i></a>
-      <a href="#"><i class="fab fa-github"></i></a>
-      <a href="#"><i class="fab fa-youtube"></i></a>
-    </div>
-  </div>
-  <p class="footer-bottom">© 2023 ConvertVwu. All rights reserved.</p>
-</footer>
-
+    <p class="footer-bottom">© 2023 ConvertVwu. All rights reserved.</p>
+  </footer>
 
   <script src="js/converter.js"></script>
   <script>
