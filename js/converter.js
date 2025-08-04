@@ -1,23 +1,30 @@
-// Video to GIF Converter - Phiên bản GitHub Pages
+// Video to GIF Converter
 async function initVideoConverter() {
+    if (!window.ffmpeg || !window.ffmpeg.loaded) {
+        console.error('FFmpeg chưa được tải');
+        return;
+    }
+
     const ffmpeg = window.ffmpeg;
     const fetchFile = window.fetchFile;
     
     // Các phần tử UI
-    const videoInput = document.getElementById('videoInput');
-    const videoBtn = document.getElementById('convertVideoBtn');
-    const videoStatus = document.getElementById('videoStatus');
-    const gifDownload = document.getElementById('gifDownload');
-    const videoPreview = document.getElementById('videoPreview');
-    const progressBar = document.getElementById('progressBar');
-    const videoInfo = document.getElementById('videoInfo');
-    const videoDuration = document.getElementById('videoDuration');
-    
+    const elements = {
+        videoInput: document.getElementById('videoInput'),
+        videoBtn: document.getElementById('convertVideoBtn'),
+        videoStatus: document.getElementById('videoStatus'),
+        gifDownload: document.getElementById('gifDownload'),
+        videoPreview: document.getElementById('videoPreview'),
+        progressBar: document.getElementById('progressBar'),
+        videoInfo: document.getElementById('videoInfo'),
+        videoDuration: document.getElementById('videoDuration')
+    };
+
     let selectedVideo = null;
     let conversionStartTime;
 
     // Xử lý chọn file video
-    videoInput.addEventListener('change', async (e) => {
+    elements.videoInput.addEventListener('change', async (e) => {
         if (!e.target.files.length) return;
         
         selectedVideo = e.target.files[0];
@@ -28,30 +35,30 @@ async function initVideoConverter() {
             return;
         }
         
-        // Kiểm tra kích thước file (tối đa 10MB)
-        if (selectedVideo.size > 10 * 1024 * 1024) {
-            alert('File video quá lớn (tối đa 10MB)');
+        // Kiểm tra kích thước file
+        if (selectedVideo.size > 20 * 1024 * 1024) {
+            alert('File video quá lớn (tối đa 20MB)');
             return;
         }
         
         // Hiển thị video preview
         const videoURL = URL.createObjectURL(selectedVideo);
-        videoPreview.src = videoURL;
-        videoPreview.style.display = 'block';
-        videoInfo.style.display = 'block';
+        elements.videoPreview.src = videoURL;
+        elements.videoPreview.style.display = 'block';
+        elements.videoInfo.style.display = 'block';
         
         // Hiển thị thông tin video
-        videoStatus.textContent = `Đã chọn: ${selectedVideo.name} (${(selectedVideo.size/1024/1024).toFixed(1)}MB)`;
-        gifDownload.style.display = 'none';
-        progressBar.style.display = 'none';
+        elements.videoStatus.textContent = `Đã chọn: ${selectedVideo.name} (${(selectedVideo.size/1024/1024).toFixed(1)}MB)`;
+        elements.gifDownload.style.display = 'none';
+        elements.progressBar.style.display = 'none';
         
         // Lấy thời lượng video
-        videoPreview.addEventListener('loadedmetadata', () => {
-            const duration = Math.floor(videoPreview.duration);
-            videoDuration.textContent = duration;
+        elements.videoPreview.addEventListener('loadedmetadata', () => {
+            const duration = Math.floor(elements.videoPreview.duration);
+            elements.videoDuration.textContent = duration;
             
             if (duration > 10) {
-                videoStatus.textContent += ` - Chỉ 10 giây đầu sẽ được chuyển đổi`;
+                elements.videoStatus.textContent += ` - Chỉ 10 giây đầu sẽ được chuyển đổi`;
             }
             
             URL.revokeObjectURL(videoURL);
@@ -59,26 +66,21 @@ async function initVideoConverter() {
     });
 
     // Xử lý nút chuyển đổi
-    videoBtn.addEventListener('click', async () => {
+    elements.videoBtn.addEventListener('click', async () => {
         if (!selectedVideo) {
             alert('Vui lòng chọn video trước!');
-            return;
-        }
-        
-        if (!ffmpeg || !ffmpeg.loaded) {
-            alert('Công cụ chuyển đổi chưa sẵn sàng, vui lòng chờ...');
             return;
         }
 
         try {
             // Thiết lập trạng thái ban đầu
-            videoBtn.disabled = true;
-            gifDownload.style.display = 'none';
-            progressBar.style.display = 'block';
-            progressBar.value = 0;
+            elements.videoBtn.disabled = true;
+            elements.gifDownload.style.display = 'none';
+            elements.progressBar.style.display = 'block';
+            elements.progressBar.value = 0;
             conversionStartTime = Date.now();
             
-            videoStatus.textContent = 'Đang bắt đầu quá trình chuyển đổi...';
+            elements.videoStatus.textContent = 'Đang bắt đầu quá trình chuyển đổi...';
             
             // Thiết lập progress callback
             ffmpeg.setProgress(({ ratio }) => {
@@ -92,17 +94,17 @@ async function initVideoConverter() {
                     eta = `${Math.floor(remainingTime)} giây còn lại`;
                 }
                 
-                videoStatus.textContent = `Đang xử lý: ${progress}% (${eta})`;
-                progressBar.value = progress;
+                elements.videoStatus.textContent = `Đang xử lý: ${progress}% (${eta})`;
+                elements.progressBar.value = progress;
             });
 
             // Bước 1: Đọc file video
-            videoStatus.textContent = 'Đang đọc video...';
+            elements.videoStatus.textContent = 'Đang đọc video...';
             const fileData = await fetchFile(selectedVideo);
             await ffmpeg.FS('writeFile', 'input.mp4', fileData);
 
             // Bước 2: Chuyển đổi sang GIF
-            videoStatus.textContent = 'Đang chuyển đổi...';
+            elements.videoStatus.textContent = 'Đang chuyển đổi...';
             await ffmpeg.run(
                 '-i', 'input.mp4',
                 '-t', '10', // Giới hạn 10 giây
@@ -112,26 +114,26 @@ async function initVideoConverter() {
             );
 
             // Bước 3: Lấy kết quả
-            videoStatus.textContent = 'Đang tạo file GIF...';
+            elements.videoStatus.textContent = 'Đang tạo file GIF...';
             const data = ffmpeg.FS('readFile', 'output.gif');
             
             // Tạo link download
             const blob = new Blob([data.buffer], { type: 'image/gif' });
             const url = URL.createObjectURL(blob);
-            gifDownload.href = url;
-            gifDownload.download = selectedVideo.name.replace(/\.[^/.]+$/, '') + '.gif';
+            elements.gifDownload.href = url;
+            elements.gifDownload.download = selectedVideo.name.replace(/\.[^/.]+$/, '') + '.gif';
             
             // Hiển thị kết quả
-            gifDownload.style.display = 'inline-block';
-            progressBar.value = 100;
-            videoStatus.innerHTML = '✅ Chuyển đổi thành công! <i class="fas fa-check-circle"></i>';
+            elements.gifDownload.style.display = 'inline-block';
+            elements.progressBar.value = 100;
+            elements.videoStatus.innerHTML = '✅ Chuyển đổi thành công!';
             
         } catch (error) {
             console.error('Lỗi chuyển đổi:', error);
-            videoStatus.innerHTML = `❌ Lỗi: ${error.message || 'Xảy ra lỗi trong quá trình chuyển đổi'}`;
-            progressBar.style.display = 'none';
+            elements.videoStatus.innerHTML = `❌ Lỗi: ${error.message || 'Xảy ra lỗi trong quá trình chuyển đổi'}`;
+            elements.progressBar.style.display = 'none';
         } finally {
-            videoBtn.disabled = false;
+            elements.videoBtn.disabled = false;
         }
     });
 }
