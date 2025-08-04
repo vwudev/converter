@@ -1,7 +1,7 @@
 // Video to GIF functions
 async function initVideoConverter() {
     // Kiểm tra xem FFmpeg có sẵn sàng không
-    if (typeof createFFmpeg === 'undefined' || typeof fetchFile === 'undefined') {
+    if (typeof FFmpeg === 'undefined' || typeof createFFmpeg === 'undefined' || typeof fetchFile === 'undefined') {
         console.error('FFmpeg libraries not loaded!');
         document.getElementById('videoStatus').textContent = 'Lỗi: Thư viện FFmpeg chưa được tải. Vui lòng tải lại trang.';
         return;
@@ -22,6 +22,8 @@ async function initVideoConverter() {
     const gifDownload = document.getElementById('gifDownload');
     const videoPreview = document.getElementById('videoPreview');
     const progressBar = document.getElementById('progressBar');
+    const videoInfo = document.getElementById('videoInfo');
+    const videoDuration = document.getElementById('videoDuration');
     let selectedVideo = null;
 
     async function loadFFmpeg() {
@@ -54,12 +56,20 @@ async function initVideoConverter() {
         const videoURL = URL.createObjectURL(selectedVideo);
         videoPreview.src = videoURL;
         videoPreview.style.display = 'block';
+        videoInfo.style.display = 'block';
         
         videoStatus.textContent = `Video đã chọn: ${selectedVideo.name} (${(selectedVideo.size / 1024 / 1024).toFixed(2)}MB)`;
         gifDownload.style.display = 'none';
         progressBar.style.display = 'none';
         
         videoPreview.addEventListener('loadedmetadata', () => {
+            const duration = Math.floor(videoPreview.duration);
+            videoDuration.textContent = duration;
+            
+            if (duration > 10) {
+                videoStatus.textContent += ` - Chỉ 10 giây đầu sẽ được chuyển đổi`;
+            }
+            
             URL.revokeObjectURL(videoURL);
         }, { once: true });
     });
