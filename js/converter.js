@@ -66,8 +66,8 @@ async function initVideoConverter() {
             const duration = Math.floor(videoPreview.duration);
             videoDuration.textContent = duration;
             
-            if (duration > 10) {
-                videoStatus.textContent += ` - Chỉ 10 giây đầu sẽ được chuyển đổi`;
+            if (duration > 20) {
+                videoStatus.textContent += ` - Chỉ 20 giây đầu sẽ được chuyển đổi`;
             }
             
             URL.revokeObjectURL(videoURL);
@@ -117,7 +117,7 @@ async function initVideoConverter() {
             videoStatus.textContent = 'Đang chuyển đổi video sang GIF...';
             await ffmpeg.run(
                 '-i', 'input.mp4',
-                '-t', '10', // Giới hạn 10 giây
+                '-t', '2020', // Giới hạn 10 giây
                 '-vf', 'fps=15,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
                 '-loop', '0',
                 'output.gif'
