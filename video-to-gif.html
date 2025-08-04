@@ -3,54 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video to GIF Converter | ConvertHub</title>
+  <title>Video to GIF Converter</title>
+  <!-- Load Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Load CSS -->
   <link rel="stylesheet" href="css/styles.css">
-  <style>
-    #videoPreview {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      margin: 20px 0;
-      display: none;
-    }
-    
-    #videoInfo {
-      margin: 10px 0;
-      display: none;
-    }
-    
-    .warning {
-      color: #e67e22;
-      font-weight: bold;
-      background-color: #fdf2e9;
-      padding: 8px;
-      border-radius: 4px;
-      margin-top: 5px;
-    }
-    
-    #loadingStatus {
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      text-align: center;
-      margin: 10px 0;
-    }
-  </style>
+  <!-- Thêm COOP/COEP headers để fix SharedArrayBuffer -->
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
 </head>
 <body>
   <header>
     <nav class="navbar">
       <div class="logo">
         <i class="fas fa-exchange-alt"></i>
-        <span>ConvertVwu</span>
+        <span>Video2GIF</span>
       </div>
-      
       <button class="menu-toggle" aria-label="Toggle menu">
         <i class="fas fa-bars"></i>
       </button>
-      
       <ul class="nav-menu">
         <li class="nav-item"><a href="index.html" class="nav-link active">Trang chủ</a></li>
         <li class="nav-item"><a href="video-to-gif.html" class="nav-link">Video to GIF</a></li>
@@ -59,82 +30,86 @@
     </nav>
   </header>
 
-  <main class="converter-container">
-    <h1 class="converter-title"><i class="fas fa-film"></i> Video to GIF Converter</h1>
-    
-    <div id="loadingStatus">
-      <i class="fas fa-spinner fa-spin"></i> Đang tải công cụ chuyển đổi...
-    </div>
-    
-    <div class="tab" id="converterUI" style="display:none">
-      <h2>Chuyển Video sang GIF</h2>
-      <p>Hỗ trợ: MP4, MOV, AVI (tối đa 10MB)</p>
+  <main class="container main-content">
+    <div id="app">
+      <h1 class="text-center"><i class="fas fa-film"></i> Video to GIF Converter</h1>
       
-      <label for="videoInput">Chọn file video:</label>
-      <input type="file" id="videoInput" accept="video/*" />
-      
-      <video id="videoPreview" controls></video>
-      
-      <div id="videoInfo">
-        <p>Thời lượng: <span id="videoDuration">0</span> giây</p>
-        <p class="warning"><i class="fas fa-exclamation-triangle"></i> Chỉ 10 giây đầu sẽ được chuyển đổi</p>
+      <div id="loadingStatus" class="status-box">
+        <i class="fas fa-spinner fa-spin"></i> Đang tải công cụ chuyển đổi...
       </div>
       
-      <button id="convertVideoBtn" class="btn">
-        <i class="fas fa-sync-alt"></i> Chuyển đổi sang GIF
-      </button>
-      
-      <div class="status" id="videoStatus">Đã sẵn sàng, chọn video để bắt đầu</div>
-      <progress id="progressBar" value="0" max="100" style="width:100%;display:none;height:10px;"></progress>
-      
-      <a id="gifDownload" class="download-btn" style="display:none">
-        <i class="fas fa-download"></i> Tải GIF xuống
-      </a>
+      <div class="converter-box" id="converterUI" style="display:none">
+        <!-- Nội dung converter -->
+        <div class="form-group">
+          <label for="videoInput">Chọn file video:</label>
+          <input type="file" id="videoInput" accept="video/*" class="form-control" />
+        </div>
+        
+        <video id="videoPreview" controls class="video-preview"></video>
+        
+        <div id="videoInfo" class="info-box">
+          <p>Thời lượng: <span id="videoDuration">0</span> giây</p>
+          <p class="warning"><i class="fas fa-exclamation-triangle"></i> Chỉ 10 giây đầu sẽ được chuyển đổi</p>
+        </div>
+        
+        <button id="convertVideoBtn" class="btn btn-primary">
+          <i class="fas fa-sync-alt"></i> Chuyển đổi sang GIF
+        </button>
+        
+        <div class="status-box" id="videoStatus">Đã sẵn sàng, chọn video để bắt đầu</div>
+        <progress id="progressBar" value="0" max="100" class="progress-bar"></progress>
+        
+        <a id="gifDownload" class="btn btn-download">
+          <i class="fas fa-download"></i> Tải GIF xuống
+        </a>
+      </div>
     </div>
   </main>
 
+  <!-- Load FFmpeg từ CDN đáng tin cậy -->
   <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
   <script>
-    // Khởi tạo FFmpeg
+    // Khởi tạo FFmpeg với fallback nếu SharedArrayBuffer không khả dụng
     document.addEventListener('DOMContentLoaded', async () => {
-      const loadingStatus = document.getElementById('loadingStatus');
-      const converterUI = document.getElementById('converterUI');
-      
       try {
-        // Tạo FFmpeg instance
+        // Kiểm tra hỗ trợ SharedArrayBuffer
+        if (typeof SharedArrayBuffer === 'undefined') {
+          throw new Error('Trình duyệt của bạn không hỗ trợ tính năng này. Vui lòng dùng Chrome/Firefox mới nhất.');
+        }
+
         const { createFFmpeg, fetchFile } = FFmpeg;
-        window.ffmpeg = createFFmpeg({ 
+        const ffmpeg = createFFmpeg({ 
           log: true,
           corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
         });
         
-        // Polyfill fetchFile nếu cần
-        window.fetchFile = fetchFile || (async file => {
-          return new Uint8Array(await new Response(file).arrayBuffer());
-        });
+        window.ffmpeg = ffmpeg;
+        window.fetchFile = fetchFile;
 
-        // Tải FFmpeg
-        loadingStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải công cụ (lần đầu có thể mất 30s-1 phút)...';
-        await window.ffmpeg.load();
+        // Hiển thị trạng thái loading
+        const loadingStatus = document.getElementById('loadingStatus');
+        loadingStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải công cụ (lần đầu có thể mất 1-2 phút)...';
+        
+        await ffmpeg.load();
         
         // Ẩn loading, hiện UI
         loadingStatus.style.display = 'none';
-        converterUI.style.display = 'block';
+        document.getElementById('converterUI').style.display = 'block';
         
         // Khởi chạy ứng dụng
         initVideoConverter();
       } catch (error) {
-        loadingStatus.innerHTML = `
-          <div style="color:red">
-            <i class="fas fa-exclamation-circle"></i> Lỗi tải công cụ!<br>
-            ${error.message}<br>
-            Vui lòng tải lại trang hoặc thử trình duyệt khác.
+        console.error('Lỗi khởi tạo:', error);
+        document.getElementById('loadingStatus').innerHTML = `
+          <div class="error-box">
+            <i class="fas fa-exclamation-circle"></i> ${error.message}
           </div>
         `;
       }
     });
   </script>
   
+  <!-- File JavaScript -->
   <script src="js/converter.js"></script>
 </body>
 </html>
